@@ -1,0 +1,1 @@
+-I/home/dima/git/majestic/thirdparty/nda/hi3516ev300/include
