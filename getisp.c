@@ -8,27 +8,27 @@
 #define GETTER(x, y) HI_MPI_##x##_Get##y
 #define SETTER(x, y) HI_MPI_##x##_Set##y
 
-#define DUMP(sys, name, st)                                                    \
+#define DUMP(sys, name, st, fill)                                              \
   {                                                                            \
-    st attr;                                                                   \
+    st attr = {fill};                                                          \
     if (GETTER(sys, name)(0, &attr) != HI_SUCCESS) {                           \
       fprintf(stderr, "Cannot do HI_MPI_" #sys "_Get" #name "\n");             \
       exit(1);                                                                 \
     }                                                                          \
-    FILE *f = fopen(#name, "wb");                                              \
+    FILE *f = fopen(#name ".bin", "wb");                                       \
     fwrite(&attr, 1, sizeof(attr), f);                                         \
     fclose(f);                                                                 \
   }
 
-#define LOAD(sys, name, st)                                                    \
+#define LOAD(sys, name, st, fill)                                              \
   {                                                                            \
-    st old;                                                                    \
+    st old = {fill};                                                           \
     if (GETTER(sys, name)(0, &old) != HI_SUCCESS) {                            \
       fprintf(stderr, "Cannot do HI_MPI_" #sys "_Get" #name "\n");             \
       exit(1);                                                                 \
     }                                                                          \
-    st attr = {0};                                                             \
-    FILE *f = fopen(#name, "rb");                                              \
+    st attr = {fill};                                                          \
+    FILE *f = fopen(#name ".bin", "rb");                                       \
     fread(&attr, 1, sizeof(attr), f);                                          \
     fclose(f);                                                                 \
     if (memcmp(&old, &attr, sizeof(attr)))                                     \
@@ -40,9 +40,11 @@
   }
 
 #ifdef LOADER
-#define OP DUMP
+#define OP(a, b, c) DUMP(a, b, c, 0)
+#define OPEX DUMP
 #else
-#define OP LOAD
+#define OP(a, b, c) LOAD(a, b, c, 0)
+#define OPEX LOAD
 #endif
 
 int main() {
@@ -70,7 +72,7 @@ int main() {
   OP(ISP, StatisticsConfig, ISP_STATISTICS_CFG_S);
   OP(ISP, WBAttr, ISP_WB_ATTR_S);
   OP(ISP, WDRExposureAttr, ISP_WDR_EXPOSURE_ATTR_S);
-  OP(VPSS, GrpNRXParam, VPSS_GRP_NRX_PARAM_S);
+  OPEX(VPSS, GrpNRXParam, VPSS_GRP_NRX_PARAM_S, .enNRVer = VPSS_NR_V3);
 }
 
 #ifndef LOADER
