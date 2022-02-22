@@ -7,8 +7,7 @@
 #define DUMP(name, st)                                                         \
   {                                                                            \
     st attr;                                                                   \
-    int ret = HI_MPI_ISP_Get##name(0, &attr);                                  \
-    if (ret != HI_SUCCESS) {                                                   \
+    if (HI_MPI_ISP_Get##name(0, &attr) != HI_SUCCESS) {                        \
       fprintf(stderr, "Cannot do HI_MPI_ISP_Get" #name "\n");                  \
       exit(1);                                                                 \
     }                                                                          \
@@ -19,12 +18,18 @@
 
 #define LOAD(name, st)                                                         \
   {                                                                            \
+    st old;                                                                    \
+    if (HI_MPI_ISP_Get##name(0, &old) != HI_SUCCESS) {                         \
+      fprintf(stderr, "Cannot do HI_MPI_ISP_Get" #name "\n");                  \
+      exit(1);                                                                 \
+    }                                                                          \
     st attr = {0};                                                             \
     FILE *f = fopen(#name, "rb");                                              \
     fread(&attr, 1, sizeof(attr), f);                                          \
     fclose(f);                                                                 \
-    int ret = HI_MPI_ISP_Set##name(0, &attr);                                  \
-    if (ret != HI_SUCCESS) {                                                   \
+    if (memcmp(&old, &attr, sizeof(attr)))                                     \
+      printf(#name " differ\n");                                               \
+    if (HI_MPI_ISP_Set##name(0, &attr) != HI_SUCCESS) {                        \
       fprintf(stderr, "Cannot do HI_MPI_ISP_Set" #name "\n");                  \
       exit(1);                                                                 \
     }                                                                          \
@@ -75,10 +80,10 @@ __attribute__((visibility("default"))) size_t _stdlib_mb_cur_max(void) {
 }
 
 void *mmap64(void *start, size_t len, int prot, int flags, int fd, off_t off);
-__attribute__((visibility("default"))) void *mmap(
-    void *start, size_t len, int prot, int flags, int fd, uint32_t off,
-    uint32_t off2) {
+__attribute__((visibility("default"))) void *mmap(void *start, size_t len,
+                                                  int prot, int flags, int fd,
+                                                  uint32_t off, uint32_t off2) {
 
-    return mmap64(start, len, prot, flags, fd, off);
+  return mmap64(start, len, prot, flags, fd, off);
 }
 #endif
