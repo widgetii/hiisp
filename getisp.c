@@ -3,12 +3,16 @@
 #include <mpi_ae.h>
 #include <mpi_awb.h>
 #include <mpi_isp.h>
+#include <mpi_vpss.h>
 
-#define DUMP(name, st)                                                         \
+#define GETTER(x, y) HI_MPI_##x##_Get##y
+#define SETTER(x, y) HI_MPI_##x##_Set##y
+
+#define DUMP(sys, name, st)                                                    \
   {                                                                            \
     st attr;                                                                   \
-    if (HI_MPI_ISP_Get##name(0, &attr) != HI_SUCCESS) {                        \
-      fprintf(stderr, "Cannot do HI_MPI_ISP_Get" #name "\n");                  \
+    if (GETTER(sys, name)(0, &attr) != HI_SUCCESS) {                           \
+      fprintf(stderr, "Cannot do HI_MPI_" #sys "_Get" #name "\n");             \
       exit(1);                                                                 \
     }                                                                          \
     FILE *f = fopen(#name, "wb");                                              \
@@ -16,11 +20,11 @@
     fclose(f);                                                                 \
   }
 
-#define LOAD(name, st)                                                         \
+#define LOAD(sys, name, st)                                                    \
   {                                                                            \
     st old;                                                                    \
-    if (HI_MPI_ISP_Get##name(0, &old) != HI_SUCCESS) {                         \
-      fprintf(stderr, "Cannot do HI_MPI_ISP_Get" #name "\n");                  \
+    if (GETTER(sys, name)(0, &old) != HI_SUCCESS) {                            \
+      fprintf(stderr, "Cannot do HI_MPI_" #sys "_Get" #name "\n");             \
       exit(1);                                                                 \
     }                                                                          \
     st attr = {0};                                                             \
@@ -29,8 +33,8 @@
     fclose(f);                                                                 \
     if (memcmp(&old, &attr, sizeof(attr)))                                     \
       printf(#name " differ\n");                                               \
-    if (HI_MPI_ISP_Set##name(0, &attr) != HI_SUCCESS) {                        \
-      fprintf(stderr, "Cannot do HI_MPI_ISP_Set" #name "\n");                  \
+    if (SETTER(sys, name)(0, &attr) != HI_SUCCESS) {                           \
+      fprintf(stderr, "Cannot do HI_MPI_" #sys "_Set" #name "\n");             \
       exit(1);                                                                 \
     }                                                                          \
   }
@@ -42,30 +46,31 @@
 #endif
 
 int main() {
-  OP(AWBAttrEx, ISP_AWB_ATTR_EX_S);
-  OP(BlackLevelAttr, ISP_BLACK_LEVEL_S);
-  OP(CAAttr, ISP_CA_ATTR_S);
-  OP(CCMAttr, ISP_COLORMATRIX_ATTR_S);
-  OP(CSCAttr, ISP_CSC_ATTR_S);
-  OP(ColorToneAttr, ISP_COLOR_TONE_ATTR_S);
-  OP(CtrlParam, ISP_CTRL_PARAM_S);
-  OP(DPDynamicAttr, ISP_DP_DYNAMIC_ATTR_S);
-  OP(DRCAttr, ISP_DRC_ATTR_S);
-  OP(DehazeAttr, ISP_DEHAZE_ATTR_S);
-  OP(ExposureAttr, ISP_EXPOSURE_ATTR_S);
-  OP(FSWDRAttr, ISP_WDR_FS_ATTR_S);
-  OP(GammaAttr, ISP_GAMMA_ATTR_S);
-  OP(IspSharpenAttr, ISP_SHARPEN_ATTR_S);
-  OP(LDCIAttr, ISP_LDCI_ATTR_S);
-  OP(LocalCacAttr, ISP_LOCAL_CAC_ATTR_S);
-  OP(MeshShadingAttr, ISP_SHADING_ATTR_S);
-  OP(NRAttr, ISP_NR_ATTR_S);
-  OP(PubAttr, ISP_PUB_ATTR_S);
-  OP(SaturationAttr, ISP_SATURATION_ATTR_S);
-  OP(SmartExposureAttr, ISP_SMART_EXPOSURE_ATTR_S);
-  OP(StatisticsConfig, ISP_STATISTICS_CFG_S);
-  OP(WBAttr, ISP_WB_ATTR_S);
-  OP(WDRExposureAttr, ISP_WDR_EXPOSURE_ATTR_S);
+  OP(ISP, AWBAttrEx, ISP_AWB_ATTR_EX_S);
+  OP(ISP, BlackLevelAttr, ISP_BLACK_LEVEL_S);
+  OP(ISP, CAAttr, ISP_CA_ATTR_S);
+  OP(ISP, CCMAttr, ISP_COLORMATRIX_ATTR_S);
+  OP(ISP, CSCAttr, ISP_CSC_ATTR_S);
+  OP(ISP, ColorToneAttr, ISP_COLOR_TONE_ATTR_S);
+  OP(ISP, CtrlParam, ISP_CTRL_PARAM_S);
+  OP(ISP, DPDynamicAttr, ISP_DP_DYNAMIC_ATTR_S);
+  OP(ISP, DRCAttr, ISP_DRC_ATTR_S);
+  OP(ISP, DehazeAttr, ISP_DEHAZE_ATTR_S);
+  OP(ISP, ExposureAttr, ISP_EXPOSURE_ATTR_S);
+  OP(ISP, FSWDRAttr, ISP_WDR_FS_ATTR_S);
+  OP(ISP, GammaAttr, ISP_GAMMA_ATTR_S);
+  OP(ISP, IspSharpenAttr, ISP_SHARPEN_ATTR_S);
+  OP(ISP, LDCIAttr, ISP_LDCI_ATTR_S);
+  OP(ISP, LocalCacAttr, ISP_LOCAL_CAC_ATTR_S);
+  OP(ISP, MeshShadingAttr, ISP_SHADING_ATTR_S);
+  OP(ISP, NRAttr, ISP_NR_ATTR_S);
+  OP(ISP, PubAttr, ISP_PUB_ATTR_S);
+  OP(ISP, SaturationAttr, ISP_SATURATION_ATTR_S);
+  OP(ISP, SmartExposureAttr, ISP_SMART_EXPOSURE_ATTR_S);
+  OP(ISP, StatisticsConfig, ISP_STATISTICS_CFG_S);
+  OP(ISP, WBAttr, ISP_WB_ATTR_S);
+  OP(ISP, WDRExposureAttr, ISP_WDR_EXPOSURE_ATTR_S);
+  OP(VPSS, GrpNRXParam, VPSS_GRP_NRX_PARAM_S);
 }
 
 #ifndef LOADER
